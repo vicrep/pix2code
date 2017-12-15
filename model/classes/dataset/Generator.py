@@ -2,10 +2,12 @@ from __future__ import print_function
 __author__ = 'Tony Beltramelli - www.tonybeltramelli.com'
 
 import numpy as np
+from StringIO import StringIO
+from tensorflow.python.lib.io import file_io
 
-from classes.dataset.Dataset import *
-from classes.Vocabulary import *
-from classes.model.Config import *
+from .Dataset import *
+from ..Vocabulary import *
+from ..model.Config import *
 
 
 class Generator:
@@ -24,8 +26,9 @@ class Generator:
                 if img_paths[i].find(".png") != -1:
                     img = Utils.get_preprocessed_img(img_paths[i], IMAGE_SIZE)
                 else:
-                    img = np.load(img_paths[i])["features"]
-                gui = open(gui_paths[i], 'r')
+                    f_str = StringIO(file_io.read_file_to_string(img_paths[i]))
+                    img = np.load(f_str)["features"]
+                gui = file_io.FileIO(gui_paths[i], 'r')
 
                 token_sequence = [START_TOKEN]
                 for line in gui:

@@ -4,12 +4,12 @@ from __future__ import absolute_import
 __author__ = 'Tony Beltramelli - www.tonybeltramelli.com'
 
 import tensorflow as tf
-sess = tf.Session(config=tf.ConfigProto(log_device_placement=True))
+tf.logging.set_verbosity(tf.logging.INFO)
 
 import sys
 
-from classes.dataset.Generator import *
-from classes.model.pix2code import *
+from .classes.dataset.Generator import *
+from .classes.model.pix2code import *
 
 
 def run(input_path, output_path, is_memory_intensive=False, pretrained_model=None):
@@ -43,6 +43,11 @@ def run(input_path, output_path, is_memory_intensive=False, pretrained_model=Non
     model = pix2code(input_shape, output_size, output_path)
 
     if pretrained_model is not None:
+        if pretrained_model.startswith('gs://'):
+            fp = './pretrained_local.h5'
+            copy_file_from_gcs('', pretrained_model, fp)
+            pretrained_model = fp
+
         model.model.load_weights(pretrained_model)
 
     if not is_memory_intensive:

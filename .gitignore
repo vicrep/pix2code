@@ -135,6 +135,8 @@ cmake-build-debug/
 
 ## Plugin-specific files:
 
+.vscode/
+
 # IntelliJ
 out/
 
@@ -159,3 +161,5 @@ datasets/*
 
 # Training output
 bin/
+results/
+code/

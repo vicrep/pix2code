@@ -2,6 +2,7 @@ __author__ = 'Tony Beltramelli - www.tonybeltramelli.com'
 
 import sys
 import numpy as np
+from tensorflow.python.lib.io import file_io
 
 START_TOKEN = "<START>"
 END_TOKEN = "<END>"
@@ -52,12 +53,12 @@ class Vocabulary:
 
     def save(self, path):
         output_file_name = "{}/words.vocab".format(path)
-        output_file = open(output_file_name, 'w')
+        output_file = file_io.FileIO(output_file_name, 'w')
         output_file.write(self.get_serialized_binary_representation())
         output_file.close()
 
     def retrieve(self, path):
-        input_file = open("{}/words.vocab".format(path), 'r')
+        input_file = file_io.FileIO("{}/words.vocab".format(path), 'r')
         buffer = ""
         for line in input_file:
             try:

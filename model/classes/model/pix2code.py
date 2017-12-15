@@ -6,6 +6,7 @@ from keras.layers import Input, Dense, Dropout, \
                          Conv2D, MaxPooling2D, Flatten
 from keras.models import Sequential, Model
 from keras.optimizers import RMSprop
+from keras.callbacks import LambdaCallback
 from keras import *
 from .Config import *
 from .AModel import *
@@ -56,17 +57,21 @@ class pix2code(AModel):
         decoder = LSTM(512, return_sequences=False)(decoder)
         decoder = Dense(output_size, activation='softmax')(decoder)
 
+        self.on_epoch_cb = LambdaCallback(
+            on_epoch_end=lambda epoch, logs: self.save()
+        )
+
         self.model = Model(inputs=[visual_input, textual_input], outputs=decoder)
 
         optimizer = RMSprop(lr=0.0001, clipvalue=1.0)
         self.model.compile(loss='categorical_crossentropy', optimizer=optimizer)
 
     def fit(self, images, partial_captions, next_words):
-        self.model.fit([images, partial_captions], next_words, shuffle=False, epochs=EPOCHS, batch_size=BATCH_SIZE, verbose=1)
+        self.model.fit([images, partial_captions], next_words, shuffle=False, epochs=EPOCHS, batch_size=BATCH_SIZE, verbose=1, callbacks=[self.on_epoch_cb])
         self.save()
 
     def fit_generator(self, generator, steps_per_epoch):
-        self.model.fit_generator(generator, steps_per_epoch=steps_per_epoch, epochs=EPOCHS, verbose=1)
+        self.model.fit_generator(generator, steps_per_epoch=steps_per_epoch, epochs=EPOCHS, verbose=1, callbacks=[self.on_epoch_cb])
         self.save()
 
     def predict(self, image, partial_caption):

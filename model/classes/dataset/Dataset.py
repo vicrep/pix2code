@@ -1,11 +1,12 @@
 from __future__ import print_function
 __author__ = 'Tony Beltramelli - www.tonybeltramelli.com'
 
-import os
+from tensorflow.python.lib.io import file_io
+from StringIO import StringIO
 
-from classes.Vocabulary import *
-from classes.Utils import *
-from classes.model.Config import *
+from ..Vocabulary import *
+from ..Utils import *
+from ..model.Config import *
 
 
 class Dataset:
@@ -26,16 +27,16 @@ class Dataset:
         print("Parsing data...")
         gui_paths = []
         img_paths = []
-        for f in os.listdir(path):
+        for f in file_io.list_directory(path):
             if f.find(".gui") != -1:
                 path_gui = "{}/{}".format(path, f)
                 gui_paths.append(path_gui)
                 file_name = f[:f.find(".gui")]
 
-                if os.path.isfile("{}/{}.png".format(path, file_name)):
+                if file_io.file_exists("{}/{}.png".format(path, file_name)):
                     path_img = "{}/{}.png".format(path, file_name)
                     img_paths.append(path_img)
-                elif os.path.isfile("{}/{}.npz".format(path, file_name)):
+                elif file_io.file_exists("{}/{}.npz".format(path, file_name)):
                     path_img = "{}/{}.npz".format(path, file_name)
                     img_paths.append(path_img)
 
@@ -44,16 +45,17 @@ class Dataset:
 
     def load(self, path, generate_binary_sequences=False):
         print("Loading data...")
-        for f in os.listdir(path):
+        for f in file_io.list_directory(path):
             if f.find(".gui") != -1:
-                gui = open("{}/{}".format(path, f), 'r')
+                gui = file_io.FileIO("{}/{}".format(path, f), 'r')
                 file_name = f[:f.find(".gui")]
 
-                if os.path.isfile("{}/{}.png".format(path, file_name)):
+                if file_io.file_exists("{}/{}.png".format(path, file_name)):
                     img = Utils.get_preprocessed_img("{}/{}.png".format(path, file_name), IMAGE_SIZE)
                     self.append(file_name, gui, img)
-                elif os.path.isfile("{}/{}.npz".format(path, file_name)):
-                    img = np.load("{}/{}.npz".format(path, file_name))["features"]
+                elif file_io.file_exists("{}/{}.npz".format(path, file_name)):
+                    f_str = StringIO(file_io.read_file_to_string("{}/{}.npz".format(path, file_name)))
+                    img = np.load(f_str)["features"]
                     self.append(file_name, gui, img)
 
         print("Generating sparse vectors...")
@@ -141,4 +143,4 @@ class Dataset:
         return temp
 
     def save_metadata(self, path):
-        np.save("{}/meta_dataset".format(path), np.array([self.input_shape, self.output_size, self.size]))
+        np.save(file_io.FileIO("{}/meta_dataset".format(path), 'w'), np.array([self.input_shape, self.output_size, self.size]))
